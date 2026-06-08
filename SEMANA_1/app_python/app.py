@@ -1,0 +1,1 @@
+print("Hola, este programa Python está corriendo dentro de Docker")
