@@ -1,6 +1,6 @@
 # Semana 1: Contenedores Docker
 
-Esta carpeta contiene ejercicios sencillos para practicar los conceptos iniciales de Docker: imagenes, contenedores, puertos, variables de entorno, volumenes basicos y uso de Docker Compose.
+Esta carpeta contiene ejercicios sencillos para practicar los conceptos iniciales de Docker: imagenes, contenedores, puertos, variables de entorno y uso de archivos `Dockerfile`.
 
 ## Comandos basicos de Docker
 
@@ -8,7 +8,6 @@ Verificar la instalacion de Docker:
 
 ```bash
 docker --version
-docker compose version
 ```
 
 Descargar una imagen desde Docker Hub:
@@ -75,18 +74,6 @@ Ver logs de un contenedor:
 
 ```bash
 docker logs NOMBRE_O_ID_DEL_CONTENEDOR
-```
-
-Ejecutar Docker Compose:
-
-```bash
-docker compose up --build
-```
-
-Detener servicios de Docker Compose:
-
-```bash
-docker compose down
 ```
 
 ## Ejercicios
@@ -192,27 +179,6 @@ cd SEMANA_1/docker-env
 docker build -t semana1-env .
 docker run --rm semana1-env
 docker run --rm -e NOMBRE=Maria -e ENTORNO=produccion semana1-env
-```
-
-### 8. `docker-compose-redis`
-
-Ejercicio con Docker Compose. Levanta dos servicios: una aplicacion Flask y una base Redis para contar visitas.
-
-```bash
-cd SEMANA_1/docker-compose-redis
-docker compose up --build
-```
-
-Probar la aplicacion:
-
-```bash
-curl http://localhost:5001
-```
-
-Detener los servicios:
-
-```bash
-docker compose down
 ```
 
 ## Limpieza recomendada
