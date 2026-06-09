@@ -57,14 +57,15 @@ def startup():
 
 @app.get("/")
 def inicio():
-    return {"mensaje": "API efimera de estudiantes con FastAPI y MySQL"}
+    return {"mensaje": "API efimera de estudiantes con FastAPI y MySQL test2"}
 
 
 @app.get("/estudiantes")
 def listar_estudiantes():
     with get_connection() as conn:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, nombre, carrera, nota_promedio FROM estudiantes ORDER BY id")
+        cursor.execute(
+            "SELECT id, nombre, carrera, nota_promedio FROM estudiantes ORDER BY id")
         return cursor.fetchall()
 
 
@@ -78,7 +79,8 @@ def obtener_estudiante(estudiante_id: int):
         )
         estudiante = cursor.fetchone()
         if estudiante is None:
-            raise HTTPException(status_code=404, detail="Estudiante no encontrado")
+            raise HTTPException(
+                status_code=404, detail="Estudiante no encontrado")
         return estudiante
 
 
