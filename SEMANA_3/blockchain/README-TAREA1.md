@@ -1,718 +1,146 @@
-# Semana 3 - Registro de Titulos con Blockchain, FastAPI, PostgreSQL y Docker Compose
+# Tarea 1 - Implementación inicial de Smart Contract en contenedor Docker
 
-Esta practica construye un primer proyecto integrador de administracion cloud. El objetivo es registrar titulos universitarios guardando los datos completos en PostgreSQL y dejando una evidencia verificable en blockchain mediante un contrato inteligente.
+## Información de la práctica
 
-La practica avanza por etapas:
+Práctica desarrollada para la asignatura de Administración Cloud, basada en el proyecto proporcionado por la UTPL para la implementación de contratos inteligentes utilizando Solidity, Hardhat y Docker.
 
-- Crear y probar un contrato Solidity con Hardhat.
-- Ejecutar el contrato y scripts desde Docker.
-- Levantar una blockchain local con Ganache usando Docker Compose.
-- Desplegar el contrato en Ganache y guardar su direccion.
-- Crear una API Universidad con FastAPI y Swagger.
-- Guardar datos completos en PostgreSQL.
-- Registrar hashes en blockchain desde la API.
-- Verificar desde Swagger que el titulo existe y que el documento coincide.
+---
 
-## Problema Que Busca Resolver
+## Repositorio de referencia
 
-En un sistema academico real, una universidad necesita emitir titulos y permitir que terceros verifiquen su autenticidad. Guardar toda la informacion en blockchain no es recomendable porque puede incluir datos personales y porque la blockchain no es una base de datos tradicional.
+Proyecto original proporcionado por el docente:
 
-Esta solucion separa responsabilidades:
+https://github.com/GCBlockChainCloud/administracion_cloud_utpl/tree/main/SEMANA_3/blockchain
 
-- PostgreSQL guarda los datos completos del titulo.
-- Blockchain guarda evidencia verificable mediante hashes.
-- FastAPI expone endpoints para registrar y verificar titulos.
-- Swagger permite probar la API sin construir un frontend.
-- Docker Compose orquesta todos los servicios localmente.
+El repositorio contiene:
 
-## Arquitectura
+* Contrato inteligente `RegistroTitulos.sol`
+* Dockerfile para construcción de la imagen
+* Configuración Hardhat
+* Scripts de despliegue y pruebas
+* Dependencias del proyecto Blockchain
 
-```text
-Usuario / Swagger
-      |
-      v
-API Universidad - FastAPI
-      |
-      | guarda datos completos
-      v
-PostgreSQL
+---
 
-      |
-      | registra hashes
-      v
-Contrato RegistroTitulos
-      |
-      v
-Ganache - blockchain local
-```
+## Imagen Docker Hub
 
-Servicios usados:
-
-- `blockchain-node`: nodo Ganache local en el puerto `8545`.
-- `contract-tools`: contenedor con Hardhat para compilar y desplegar contratos.
-- `postgres`: base de datos PostgreSQL.
-- `api-universidad`: API FastAPI con Swagger en el puerto `8000`.
-
-## Estructura
+Imagen publicada:
 
 ```text
-SEMANA_3/
-  README.md
-  .env.example
-  docker-compose.yml
-  blockchain/
-    Dockerfile
-    hardhat.config.ts
-    package.json
-    contracts/
-      RegistroTitulos.sol
-    scripts/
-      crear-titulo.ts
-      deploy-registro-titulos.ts
-  api-universidad/
-    Dockerfile
-    requirements.txt
-    main.py
-    database.py
-    models.py
-    schemas.py
-    blockchain.py
-    contracts/
-      RegistroTitulos.json
+giovannydevops/registro-titulos-blockchain:1.0
 ```
 
-## Requisitos
-
-Instalar previamente:
-
-- Docker Desktop.
-- Node.js 22 o superior si se desea probar Hardhat localmente.
-- PowerShell en Windows.
-
-Verificar versiones:
-
-```powershell
-docker --version
-docker compose version
-node --version
-npm --version
-```
-
-## Variables De Entorno
-
-Crear un archivo `.env` dentro de `SEMANA_3` usando como base `.env.example`:
-
-```powershell
-copy .env.example .env
-```
-
-Contenido esperado:
-
-```env
-GANACHE_RPC_URL=http://blockchain-node:8545
-GANACHE_PRIVATE_KEY=0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d
-CONTRACT_ADDRESS=0xREEMPLAZAR_CON_LA_DIRECCION_DEL_CONTRATO
-
-POSTGRES_DB=titulos_db
-POSTGRES_USER=admin
-POSTGRES_PASSWORD=admin123
-```
-
-La clave privada incluida corresponde a la primera cuenta que Ganache genera con `--wallet.deterministic`. Es solo para desarrollo local.
-
-## 1. Crear El Proyecto Hardhat Desde Cero
-
-Crea una nueva carpeta para trabajar en este proyecto
-
-Crear la carpeta blockchain:
-
-```powershell
-mkdir blockchain
-cd blockchain
-```
-
-Inicializar Hardhat:
-
-
-```powershell
-npx hardhat --init
-```
-
-Seleccionar un proyecto TypeScript con Viem.
-
-## 2. Contrato RegistroTitulos
-
-El contrato principal esta en:
+URL pública:
 
 ```text
-blockchain/contracts/RegistroTitulos.sol
+https://hub.docker.com/r/giovannydevops/registro-titulos-blockchain
 ```
 
-Responsabilidades del contrato:
+La imagen contiene:
 
-- Registrar un titulo usando `codigoTituloHash` y `documentoHash`.
-- Evitar duplicados por `codigoTituloHash`.
-- Guardar la direccion de la universidad que registra el titulo.
-- Permitir verificar si un documento coincide con un titulo registrado.
-- Emitir el evento `TituloRegistrado`.
+* Node.js
+* Hardhat
+* Contrato Solidity
+* Scripts de prueba
+* Dependencias necesarias para compilación y ejecución
 
-El contrato no guarda nombres, cedulas ni documentos completos. Solo guarda hashes.
+---
 
-## 3. Probar Hardhat Localmente
+## Descarga de la imagen
 
-Desde `SEMANA_3/blockchain`:
-
-```powershell
-npm install
+```bash
+docker pull giovannydevops/registro-titulos-blockchain:1.0
 ```
 
-Compilar el contrato:
+---
 
-```powershell
+## Verificación de compilación
+
+Ejecutar:
+
+```bash
+docker run --rm giovannydevops/registro-titulos-blockchain:1.0
+```
+
+Este comando ejecuta:
+
+```bash
 npx hardhat compile
 ```
 
-Ejecutar el script didactico que despliega y crea un titulo en una red temporal de Hardhat:
-
-```powershell
-npx hardhat run scripts/crear-titulo.ts
-```
-
-Este script hace lo siguiente:
-
-- Crea una red temporal de Hardhat.
-- Despliega `RegistroTitulos`.
-- Calcula hashes de un titulo de prueba.
-- Llama a `registrarTitulo`.
-- Llama a `verificarTitulo`.
-- Imprime el resultado en consola.
-
-La red temporal desaparece cuando termina el script.
-
-## 4. Probar El Dockerfile De Blockchain
-
-El Dockerfile de `blockchain` crea una imagen con Hardhat y los contratos.
-
-Desde `proyecto/blockchain`:
-
-```powershell
-docker build -t registro-titulos .
-```
-
-Ejecutar el comando por defecto de la imagen:
-
-```powershell
-docker run --rm registro-titulos
-```
-
-El comando por defecto es:
-
-```dockerfile
-CMD ["npx", "hardhat", "compile"]
-```
-
-Tambien se puede reemplazar el comando por defecto:
-
-```powershell
-docker run --rm registro-titulos npx hardhat run scripts/crear-titulo.ts
-```
-
-Esto permite usar la imagen como herramienta de desarrollo para compilar o ejecutar scripts.
-
-## 5. Levantar Ganache Con Docker Compose
-
-Ganache es una blockchain local de desarrollo. Mantiene contratos, bloques y transacciones mientras el servicio conserva su estado.
-
-Desde `proyecto`:
-
-```powershell
-docker compose up -d blockchain-node
-```
-
-Verificar el servicio:
-
-```powershell
-docker compose ps
-```
-
-Ver logs de Ganache:
-
-```powershell
-docker compose logs blockchain-node
-```
-
-Ganache queda disponible en:
+Resultado esperado:
 
 ```text
-http://localhost:8545
+Compiled successfully
 ```
 
-Dentro de Docker Compose, los otros servicios lo consumen con:
+---
 
-```text
-http://blockchain-node:8545
+## Ejecución de prueba del contrato
+
+Ejecutar:
+
+```bash
+docker run --rm giovannydevops/registro-titulos-blockchain:1.0 npx hardhat run scripts/crear-titulo.ts
 ```
 
-## 6. Desplegar El Contrato En Ganache
+Este script realiza automáticamente:
 
-Desde `proyecto`:
+1. Creación de una red temporal Hardhat.
+2. Despliegue del contrato RegistroTitulos.
+3. Generación de hashes de prueba.
+4. Registro de un título académico.
+5. Verificación de la información registrada.
+6. Presentación de resultados en consola.
 
-```powershell
-docker compose run --rm contract-tools npx hardhat run scripts/deploy-registro-titulos.ts --network ganache
+---
+
+## Construcción de la imagen
+
+Desde la carpeta del proyecto:
+
+```bash
+docker build -t giovannydevops/registro-titulos-blockchain:1.0 .
 ```
 
-Salida esperada:
+Verificar imagen:
 
-```text
-Desplegando contrato RegistroTitulos...
-Contrato desplegado correctamente
-Direccion del contrato: 0x...
-```
-
-Copiar la direccion y reemplazarla en `.env`:
-
-```env
-CONTRACT_ADDRESS=0xDIRECCION_DEL_CONTRATO
-```
-
-## 7. Verificar Que El Contrato Existe En Ganache
-
-Entrar a la consola de Hardhat conectada a Ganache:
-
-```powershell
-docker compose run --rm contract-tools npx hardhat console --network ganache
-```
-
-Dentro de la consola:
-
-```javascript
-const { viem } = await network.create()
-const publicClient = await viem.getPublicClient()
-await publicClient.getCode({ address: "0xDIRECCION_DEL_CONTRATO" })
-```
-
-Si devuelve algo como `0x608060...`, el contrato existe.
-
-Si devuelve `0x` o `undefined`, no existe contrato en esa direccion.
-
-Salir de la consola:
-
-```javascript
-.exit
-```
-
-## 8. Persistencia De Ganache
-
-Ganache usa un volumen Docker:
-
-```yaml
-volumes:
-  - ganache_data:/data
-```
-
-Y arranca con:
-
-```yaml
---database.dbPath /data
-```
-
-Esto permite conservar el estado de la blockchain local entre reinicios normales.
-
-Apagar sin borrar volumen:
-
-```powershell
-docker compose down
-```
-
-Levantar otra vez:
-
-```powershell
-docker compose up -d blockchain-node
-```
-
-Volver a verificar el bytecode del contrato con Hardhat console. Si el bytecode sigue apareciendo, el contrato persistio.
-
-No usar este comando si se desea conservar el contrato:
-
-```powershell
-docker compose down -v
-```
-
-El parametro `-v` borra los volumenes.
-
-## 9. Levantar PostgreSQL Y FastAPI
-
-Desde `proyecto`:
-
-```powershell
-docker compose up -d --build blockchain-node postgres api-universidad
-```
-
-Verificar servicios:
-
-```powershell
-docker compose ps
-```
-
-Servicios esperados:
-
-```text
-blockchain-node   Up   8545
-postgres          Up   5432
-api-universidad   Up   8000
-```
-
-Swagger queda disponible en:
-
-```text
-http://localhost:8000/docs
-```
-
-## 10. API Universidad
-
-La API esta en:
-
-```text
-api-universidad/
-```
-
-Componentes principales:
-
-- `main.py`: define endpoints FastAPI.
-- `database.py`: conexion SQLAlchemy a PostgreSQL.
-- `models.py`: modelo `Titulo` y tabla `titulos`.
-- `schemas.py`: modelos Pydantic para entrada y salida.
-- `blockchain.py`: cliente Web3 para Ganache y contrato.
-- `contracts/RegistroTitulos.json`: ABI minimo del contrato.
-
-FastAPI crea la tabla automaticamente al iniciar:
-
-```python
-Base.metadata.create_all(bind=engine)
-```
-
-## 11. Endpoints Disponibles
-
-Verificar API:
-
-```http
-GET /health
-```
-
-Verificar contrato configurado:
-
-```http
-GET /blockchain/contract
-```
-
-Crear titulo:
-
-```http
-POST /titulos
-```
-
-Consultar titulo desde PostgreSQL:
-
-```http
-GET /titulos/{codigo_titulo}
-```
-
-Verificar titulo contra blockchain:
-
-```http
-GET /titulos/{codigo_titulo}/verificar
-```
-
-## 12. Probar La API Con PowerShell
-
-Verificar salud:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:8000/health"
-```
-
-Verificar contrato:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:8000/blockchain/contract"
-```
-
-Crear titulo:
-
-```powershell
-$body = @{
-  codigo_titulo = "UTPL-SIS-2026-API-0001"
-  nombre_estudiante = "Maria Loja"
-  identificacion_estudiante = "1100000002"
-  carrera = "Sistemas"
-  titulo_obtenido = "Ingeniera en Sistemas"
-  universidad = "UTPL"
-  fecha_emision = "2026-06-15"
-  contenido_documento = "Titulo de Maria Loja como Ingeniera en Sistemas emitido por UTPL"
-} | ConvertTo-Json
-
-Invoke-RestMethod -Uri "http://localhost:8000/titulos" -Method Post -ContentType "application/json" -Body $body
-```
-
-Consultar titulo:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:8000/titulos/UTPL-SIS-2026-API-0001"
-```
-
-Verificar contra blockchain:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:8000/titulos/UTPL-SIS-2026-API-0001/verificar"
-```
-
-Respuesta esperada:
-
-```text
-existe_en_blockchain : True
-documento_coincide   : True
-```
-
-## 13. Probar Desde Swagger
-
-Abrir:
-
-```text
-http://localhost:8000/docs
-```
-
-Probar en este orden:
-
-- `GET /health`
-- `GET /blockchain/contract`
-- `POST /titulos`
-- `GET /titulos/{codigo_titulo}`
-- `GET /titulos/{codigo_titulo}/verificar`
-
-Ejemplo de body para `POST /titulos`:
-
-```json
-{
-  "codigo_titulo": "UTPL-SIS-2026-API-0002",
-  "nombre_estudiante": "Carlos Zamora",
-  "identificacion_estudiante": "1100000003",
-  "carrera": "Computacion",
-  "titulo_obtenido": "Ingeniero en Computacion",
-  "universidad": "UTPL",
-  "fecha_emision": "2026-06-15",
-  "contenido_documento": "Titulo de Carlos Zamora como Ingeniero en Computacion emitido por UTPL"
-}
-```
-
-## 14. Que Se Guarda En PostgreSQL
-
-La tabla `titulos` guarda:
-
-- Codigo del titulo.
-- Nombre del estudiante.
-- Identificacion del estudiante.
-- Carrera.
-- Titulo obtenido.
-- Universidad.
-- Fecha de emision.
-- Contenido del documento usado para calcular el hash.
-- Hash del codigo del titulo.
-- Hash del documento.
-- Direccion del contrato.
-- Hash de la transaccion blockchain.
-
-Consultar la base desde Docker:
-
-```powershell
-docker compose exec postgres psql -U admin -d titulos_db
-```
-
-Dentro de `psql`:
-
-```sql
-SELECT id, codigo_titulo, codigo_titulo_hash, documento_hash, tx_hash FROM titulos;
-```
-
-Salir:
-
-```sql
-\q
-```
-
-## 15. Que Se Guarda En Blockchain
-
-El contrato guarda:
-
-- `codigoTituloHash`
-- `documentoHash`
-- `universidad`
-- `fechaRegistro`
-- `existe`
-
-No guarda datos personales completos.
-
-Esto permite verificar integridad sin exponer datos sensibles directamente en blockchain.
-
-## 16. Comandos Utiles
-
-Levantar toda la practica:
-
-```powershell
-docker compose up -d --build blockchain-node postgres api-universidad
-```
-
-Desplegar contrato:
-
-```powershell
-docker compose run --rm contract-tools npx hardhat run scripts/deploy-registro-titulos.ts --network ganache
-```
-
-Ver logs de API:
-
-```powershell
-docker compose logs api-universidad
-```
-
-Ver logs de Ganache:
-
-```powershell
-docker compose logs blockchain-node
-```
-
-Ver logs de PostgreSQL:
-
-```powershell
-docker compose logs postgres
-```
-
-Apagar servicios sin borrar datos:
-
-```powershell
-docker compose down
-```
-
-Apagar y borrar volumenes:
-
-```powershell
-docker compose down -v
-```
-
-Usar `down -v` solo cuando se quiera reiniciar todo desde cero.
-
-## 17. Flujo Completo Desde Cero
-
-Desde `proyecto`:
-
-```powershell
-copy .env.example .env
-docker compose up -d --build blockchain-node
-docker compose run --rm contract-tools npx hardhat run scripts/deploy-registro-titulos.ts --network ganache
-```
-
-Copiar la direccion del contrato en `.env`:
-
-```env
-CONTRACT_ADDRESS=0xDIRECCION_DEL_CONTRATO
-```
-
-Levantar API y base de datos:
-
-```powershell
-docker compose up -d --build postgres api-universidad
-```
-
-Abrir Swagger:
-
-```text
-http://localhost:8000/docs
-```
-
-Crear y verificar titulos desde Swagger.
-
-## 18. Resultado Final
-
-Al finalizar, se tiene un sistema local compuesto por:
-
-- Una blockchain local persistente con Ganache.
-- Un contrato Solidity desplegado en esa blockchain.
-- Una API FastAPI documentada con Swagger.
-- Una base PostgreSQL para los datos completos.
-- Evidencia blockchain para verificar autenticidad e integridad.
-
-Este proyecto sirve como base para continuar en las siguientes semanas con Kubernetes local, persistencia con PVC, jobs de despliegue de contratos y simulacion multi-cloud con clusters separados.
-
-## 19. Subir Imagenes A Docker Hub
-
-En esta practica se pueden subir a Docker Hub las imagenes propias del proyecto:
-
-- `contract-tools`: imagen con Hardhat, contrato y scripts.
-- `api-universidad`: imagen con FastAPI y Web3.
-
-No se suben imagenes oficiales como `postgres` o `trufflesuite/ganache`, porque esas ya existen en Docker Hub.
-
-Primero iniciar sesion:
-
-```powershell
-docker login
-```
-
-Reemplazar `TU_USUARIO_DOCKERHUB` por el usuario real de Docker Hub.
-
-Construir la imagen de blockchain:
-
-```powershell
-docker build -t TU_USUARIO_DOCKERHUB/registro-titulos-blockchain:1.0 ./blockchain
-```
-
-Subir la imagen de blockchain:
-
-```powershell
-docker push TU_USUARIO_DOCKERHUB/registro-titulos-blockchain:1.0
-```
-
-Construir la imagen de la API:
-
-```powershell
-docker build -t TU_USUARIO_DOCKERHUB/api-universidad:1.0 ./api-universidad
-```
-
-Subir la imagen de la API:
-
-```powershell
-docker push TU_USUARIO_DOCKERHUB/api-universidad:1.0
-```
-
-Opcionalmente se puede publicar tambien una etiqueta `latest`:
-
-```powershell
-docker tag TU_USUARIO_DOCKERHUB/registro-titulos-blockchain:1.0 TU_USUARIO_DOCKERHUB/registro-titulos-blockchain:latest
-docker tag TU_USUARIO_DOCKERHUB/api-universidad:1.0 TU_USUARIO_DOCKERHUB/api-universidad:latest
-docker push TU_USUARIO_DOCKERHUB/registro-titulos-blockchain:latest
-docker push TU_USUARIO_DOCKERHUB/api-universidad:latest
-```
-
-Para usar esas imagenes publicadas en lugar de construir localmente, se podria cambiar `docker-compose.yml` de forma conceptual:
-
-```yaml
-contract-tools:
-  image: TU_USUARIO_DOCKERHUB/registro-titulos-blockchain:1.0
-
-api-universidad:
-  image: TU_USUARIO_DOCKERHUB/api-universidad:1.0
-```
-
-En ese caso se elimina o comenta la seccion `build` de esos servicios.
-
-Verificar imagenes locales:
-
-```powershell
+```bash
 docker images
 ```
 
-Probar una imagen subida:
+---
 
-```powershell
-docker pull TU_USUARIO_DOCKERHUB/api-universidad:1.0
+## Publicación en Docker Hub
+
+Iniciar sesión:
+
+```bash
+docker login
 ```
 
-Nota importante: las imagenes no deben contener el archivo `.env`. Las variables sensibles se pasan en tiempo de ejecucion con `env_file` o variables de entorno.
+Publicar imagen:
+
+```bash
+docker push giovannydevops/registro-titulos-blockchain:1.0
+```
+
+---
+
+## Evidencia de funcionamiento
+
+Comandos ejecutados:
+
+```bash
+docker pull giovannydevops/registro-titulos-blockchain:1.0
+
+docker run --rm giovannydevops/registro-titulos-blockchain:1.0
+
+docker run --rm giovannydevops/registro-titulos-blockchain:1.0 npx hardhat run scripts/crear-titulo.ts
+```
+
+---
+
+## Conclusión
+
+Durante esta práctica se implementó y distribuyó un contrato inteligente mediante Docker, permitiendo su compilación y ejecución de forma reproducible en cualquier entorno. El uso de Docker Hub facilitó la publicación y reutilización de la imagen, mientras que Hardhat permitió validar el funcionamiento del contrato de registro y verificación de títulos académicos. Esta práctica demuestra cómo las tecnologías Blockchain y los contenedores pueden integrarse para construir soluciones portables, escalables y verificables.
