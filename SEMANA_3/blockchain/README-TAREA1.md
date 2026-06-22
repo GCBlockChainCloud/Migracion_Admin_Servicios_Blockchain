@@ -1,52 +1,58 @@
-# Tarea 1 - Implementación inicial de Smart Contract en contenedor Docker
+# Semana 3 - Registro de Títulos Blockchain con Docker
 
-## Información de la práctica
+## Autor
 
-Práctica desarrollada para la asignatura de Administración Cloud, basada en el proyecto proporcionado por la UTPL para la implementación de contratos inteligentes utilizando Solidity, Hardhat y Docker.
+**Giovanny Cholca**
+
+Especialización en Sistemas de Información mención Blockchain y Arquitectura en la Nube
 
 ---
 
-## Repositorio de referencia
+# Descripción
 
-Del Proyecto original proporcionado por el docente se realizo un fork de la cuenta de GitHub:
+Esta práctica implementa un entorno de desarrollo Blockchain utilizando Docker, Hardhat y Solidity para el registro y validación de títulos académicos.
+
+La solución permite:
+
+* Compilar contratos inteligentes desarrollados en Solidity.
+* Ejecutar pruebas automatizadas mediante Hardhat.
+* Empaquetar el entorno en una imagen Docker reutilizable.
+* Publicar la imagen en Docker Hub para su distribución y reutilización.
+* Ejecutar el contrato desde cualquier equipo sin necesidad de instalar dependencias adicionales.
+
+---
+
+# Repositorio GitHub
+
+Repositorio base proporcionado para la práctica:
 
 https://github.com/GCBlockChainCloud/administracion_cloud_utpl/tree/main/SEMANA_3/blockchain
 
 El repositorio contiene:
 
-* Contrato inteligente `RegistroTitulos.sol`
-* Dockerfile para construcción de la imagen
-* Configuración Hardhat
-* Scripts de despliegue y pruebas
-* Dependencias del proyecto Blockchain
+* Dockerfile
+* Contrato inteligente Solidity
+* Scripts de despliegue
+* Configuración de Hardhat
+* Dependencias necesarias para la ejecución
 
 ---
 
-## Imagen Docker Hub
+# Imagen Docker Hub
 
-Imagen publicada:
+Repositorio público Docker Hub:
 
-```text
+https://hub.docker.com/r/giovannydevops/registro-titulos-blockchain
+
+Imagen utilizada:
+
+```bash
 giovannydevops/registro-titulos-blockchain:1.0
 ```
 
-URL pública:
-
-```text
-https://hub.docker.com/r/giovannydevops/registro-titulos-blockchain
-```
-
-La imagen contiene:
-
-* Node.js
-* Hardhat
-* Contrato Solidity
-* Scripts de prueba
-* Dependencias necesarias para compilación y ejecución
-
 ---
 
-## Descarga de la imagen
+# Descargar la imagen
 
 ```bash
 docker pull giovannydevops/registro-titulos-blockchain:1.0
@@ -54,9 +60,9 @@ docker pull giovannydevops/registro-titulos-blockchain:1.0
 
 ---
 
-## Verificación de compilación
+# Verificar compilación del contrato
 
-Ejecutar:
+Ejecutar el comando por defecto de la imagen:
 
 ```bash
 docker run --rm giovannydevops/registro-titulos-blockchain:1.0
@@ -68,58 +74,57 @@ Este comando ejecuta:
 npx hardhat compile
 ```
 
-Resultado esperado:
-
-```text
-Compiled successfully
-```
-
 ---
 
-## Ejecución de prueba del contrato
-
-Ejecutar:
+# Ejecutar prueba del contrato
 
 ```bash
 docker run --rm giovannydevops/registro-titulos-blockchain:1.0 npx hardhat run scripts/crear-titulo.ts
 ```
 
-Este script realiza automáticamente:
+La ejecución realiza automáticamente:
 
-1. Creación de una red temporal Hardhat.
+1. Creación de una blockchain temporal Hardhat.
 2. Despliegue del contrato RegistroTitulos.
-3. Generación de hashes de prueba.
-4. Registro de un título académico.
-5. Verificación de la información registrada.
-6. Presentación de resultados en consola.
+3. Registro de un título de prueba.
+4. Generación de hashes criptográficos.
+5. Verificación de integridad del documento.
 
 ---
 
-## Construcción de la imagen
+# Construcción de la imagen
 
-Desde la carpeta del proyecto:
+Para reproducir la construcción localmente:
+
+Clonar el repositorio:
+
+```bash
+git clone https://github.com/GCBlockChainCloud/administracion_cloud_utpl.git
+```
+
+Ingresar al directorio:
+
+```bash
+cd administracion_cloud_utpl/SEMANA_3/blockchain
+```
+
+Construir la imagen:
 
 ```bash
 docker build -t giovannydevops/registro-titulos-blockchain:1.0 .
 ```
 
-Verificar imagen:
-
-```bash
-docker images
-```
-
 ---
 
-## Publicación en Docker Hub
+# Publicación en Docker Hub
 
-Iniciar sesión:
+Autenticarse en Docker Hub:
 
 ```bash
 docker login
 ```
 
-Publicar imagen:
+Publicar la imagen:
 
 ```bash
 docker push giovannydevops/registro-titulos-blockchain:1.0
@@ -127,20 +132,34 @@ docker push giovannydevops/registro-titulos-blockchain:1.0
 
 ---
 
-## Evidencia de funcionamiento
+# Verificación
 
-Comandos ejecutados:
+Comprobar imágenes locales:
+
+```bash
+docker images
+```
+
+Comprobar descarga desde Docker Hub:
 
 ```bash
 docker pull giovannydevops/registro-titulos-blockchain:1.0
-
-docker run --rm giovannydevops/registro-titulos-blockchain:1.0
-
-docker run --rm giovannydevops/registro-titulos-blockchain:1.0 npx hardhat run scripts/crear-titulo.ts
 ```
 
 ---
 
-## Conclusión
+# Tecnologías utilizadas
 
-Durante esta práctica se implementó y distribuyó un contrato inteligente mediante Docker, permitiendo su compilación y ejecución de forma reproducible en cualquier entorno. El uso de Docker Hub facilitó la publicación y reutilización de la imagen, mientras que Hardhat permitió validar el funcionamiento del contrato de registro y verificación de títulos académicos. Esta práctica demuestra cómo las tecnologías Blockchain y los contenedores pueden integrarse para construir soluciones portables, escalables y verificables.
+* Docker
+* Docker Hub
+* Hardhat
+* Solidity
+* Node.js
+* Blockchain
+* Smart Contracts
+
+---
+
+# Conclusión
+
+Durante esta práctica se implementó y distribuyó un contrato inteligente utilizando Docker como mecanismo de empaquetado y Docker Hub como repositorio de distribución. La solución permitió validar el proceso completo de compilación y ejecución de contratos Solidity mediante Hardhat, demostrando cómo los contenedores facilitan la portabilidad, reproducibilidad y despliegue de aplicaciones Blockchain en diferentes entornos de trabajo.
