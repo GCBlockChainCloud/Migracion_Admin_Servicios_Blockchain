@@ -23,7 +23,7 @@ services:
     env_file:
       - .env
 
-  postgres:
+  postgres-universidad:
     image: postgres:16-alpine
     ports:
       - "5432:5432"
@@ -53,11 +53,11 @@ services:
       - "8000:8000"
     depends_on:
       - blockchain-node
-      - postgres
+      - postgres-universidad
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin123}@postgres:5432/${POSTGRES_DB:-titulos_db}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin123}@postgres-universidad:5432/${POSTGRES_DB:-titulos_db}
 
   api-ministerio:
     build:
