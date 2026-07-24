@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ganache
+  namespace: practica-blockchain
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ganache
+  template:
+    metadata:
+      labels:
+        app: ganache
+    spec:
+      containers:
+        - name: ganache
+          image: trufflesuite/ganache:v7.9.2
+          args:
+            - --host
+            - "0.0.0.0"
+            - --chain.chainId
+            - "1337"
+            - --wallet.deterministic
+          ports:
+            - name: rpc
+              containerPort: 8545
+          readinessProbe:
+            tcpSocket:
+              port: 8545
+            initialDelaySeconds: 3
+            periodSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ganache
+  namespace: practica-blockchain
+spec:
+  selector:
+    app: ganache
+  ports:
+    - name: rpc
+      port: 8545
+      targetPort: 8545

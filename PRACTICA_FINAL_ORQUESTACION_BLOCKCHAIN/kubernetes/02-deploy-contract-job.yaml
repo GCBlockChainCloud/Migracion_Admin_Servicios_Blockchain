@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: blockchain-development-secret
+  namespace: practica-blockchain
+type: Opaque
+stringData:
+  deployer-private-key: "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deploy-academic-certificate
+  namespace: practica-blockchain
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: deploy-academic-certificate
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: hardhat
+          image: academic-certificate-tools:v1
+          imagePullPolicy: IfNotPresent
+          command:
+            - npm
+            - run
+            - deploy
+          env:
+            - name: BLOCKCHAIN_RPC_URL
+              value: http://ganache:8545
+            - name: DEPLOYER_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain-development-secret
+                  key: deployer-private-key

@@ -1,0 +1,19 @@
+﻿{
+  "name": "academic-certificate-kubernetes-practice",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Practica de orquestacion de un smart contract academico con Kubernetes",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js --network kubernetes",
+    "serve": "node server.js"
+  },
+  "dependencies": {
+    "express": "4.21.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "5.0.0",
+    "hardhat": "2.28.0"
+  }
+}
+
